@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:video_player/video_player.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,6 +28,19 @@ class MyApphome extends StatefulWidget {
 
 class _MyApphomeState extends State<MyApphome> {
   int selected = 1;
+
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.asset("assets/video.mp4")
+      ..initialize().then((_) {
+        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+        setState(() {});
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,9 +68,39 @@ class _MyApphomeState extends State<MyApphome> {
             children: [
               SizedBox(
                 height: 250,
-                child: Image.network(
-                  "https://www.hollywoodreporter.com/wp-content/uploads/2023/07/source-6033-H-2023.jpg?w=1296",
-                  fit: BoxFit.cover,
+                child: _controller.value.isInitialized
+                    ? AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      )
+                    : Image.network(
+                        "https://www.hollywoodreporter.com/wp-content/uploads/2023/07/source-6033-H-2023.jpg?w=1296",
+                        fit: BoxFit.cover,
+                      ),
+              ),
+              SizedBox(
+                height: 250,
+                child: Center(
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _controller.value.isPlaying
+                            ? _controller.pause()
+                            : _controller.play();
+                      });
+                    },
+                    icon: _controller.value.isPlaying
+                        ? const Icon(
+                            Icons.pause,
+                            color: Colors.transparent,
+                            size: 80,
+                          )
+                        : const Icon(
+                            Icons.play_arrow,
+                            color: Colors.white,
+                            size: 50,
+                          ),
+                  ),
                 ),
               ),
               SizedBox(
@@ -72,7 +116,7 @@ class _MyApphomeState extends State<MyApphome> {
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(
